@@ -117,6 +117,10 @@ func main() {
 
 				connStr := parseConnStr(c)
 				err := importJSON(filename, connStr, schema, tableName, ignoreErrors, dataType)
+				if err != nil {
+					log.Default().Println(err.Error())
+				}
+
 				return err
 			},
 		},
@@ -167,7 +171,12 @@ func main() {
 				excel := c.Bool("excel")
 				delimiter := parseDelimiter(c.String("delimiter"), skipParseheader)
 				connStr := parseConnStr(c)
+
 				err := importCSV(filename, connStr, schema, tableName, ignoreErrors, skipHeader, fields, delimiter, excel, nullDelimiter)
+				if err != nil {
+					log.Default().Println(err.Error())
+				}
+
 				return err
 			},
 		},
