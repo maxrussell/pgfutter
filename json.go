@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 )
 
@@ -15,7 +16,7 @@ func tryUnmarshal(b []byte) error {
 	return err
 }
 
-//Copy JSON Rows and return list of errors
+// Copy JSON Rows and return list of errors
 func copyJSONRows(i *Import, reader *bufio.Reader, ignoreErrors bool) (error, int, int) {
 	success := 0
 	failed := 0
@@ -24,7 +25,6 @@ func copyJSONRows(i *Import, reader *bufio.Reader, ignoreErrors bool) (error, in
 		// ReadBytes instead of a Scanner because it can deal with very long lines
 		// which happens often with big JSON objects
 		line, err := reader.ReadBytes('\n')
-
 		if err == io.EOF {
 			err = nil
 			break
@@ -39,7 +39,7 @@ func copyJSONRows(i *Import, reader *bufio.Reader, ignoreErrors bool) (error, in
 		if err != nil {
 			failed++
 			if ignoreErrors {
-				os.Stderr.WriteString(string(line))
+				log.Default().Printf("ignoring error found on line %d\n", success+failed)
 				continue
 			} else {
 				err = fmt.Errorf("%s: %s", err, line)
@@ -47,11 +47,11 @@ func copyJSONRows(i *Import, reader *bufio.Reader, ignoreErrors bool) (error, in
 			}
 		}
 
-		err = i.AddRow(string(line))
+		err = i.AddRow("", string(line))
 		if err != nil {
 			failed++
 			if ignoreErrors {
-				os.Stderr.WriteString(string(line))
+				log.Default().Printf("ignoring error found on line %d\n", success+failed)
 				continue
 			} else {
 				err = fmt.Errorf("%s: %s", err, line)
@@ -82,6 +82,9 @@ func importJSON(filename string, connStr string, schema string, tableName string
 	if filename == "" {
 		reader := bufio.NewReader(os.Stdin)
 		err, success, failed = copyJSONRows(i, reader, ignoreErrors)
+		if err != nil {
+			log.Default().Println(err.Error())
+		}
 	} else {
 		file, err := os.Open(filename)
 		if err != nil {
@@ -93,6 +96,10 @@ func importJSON(filename string, connStr string, schema string, tableName string
 		reader := bufio.NewReader(io.TeeReader(file, bar))
 		bar.Start()
 		err, success, failed = copyJSONRows(i, reader, ignoreErrors)
+		if err != nil {
+			log.Default().Println(err.Error())
+		}
+
 		bar.Finish()
 	}
 
