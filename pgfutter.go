@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 func exitOnError(err error) {
@@ -16,7 +16,7 @@ func exitOnError(err error) {
 	}
 }
 
-//Parse table to copy to from given filename or passed flags
+// Parse table to copy to from given filename or passed flags
 func parseTableName(c *cli.Context, filename string) string {
 	tableName := c.GlobalString("table")
 	if tableName == "" {
